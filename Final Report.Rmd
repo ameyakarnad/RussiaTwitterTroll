@@ -1,0 +1,450 @@
+---
+title: "Russian interference in the U.S. 2016 presidential elections"
+author: "Alexandra DeKinder, Ameya Karnad, Kulkanya Lekhyananda and Nitasha Nair"
+date: "January 30, 2019"
+output: 
+ pdf_document:
+   fig_caption: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE,
+                      warning = FALSE)
+```
+
+```{r, echo=FALSE}
+library(data.table)
+library(tidyverse)
+#install.packages('bit64')
+
+# data <-  fread(input = 
+#     "D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_1.csv")
+# data$alt_external_id <- as.character(data$alt_external_id) 
+# data$tweet_id <- as.character(data$tweet_id) 
+# for (i in 2:13)
+# {
+#   filename <- 
+#   paste("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_",
+#         i,".csv",sep = "")
+#   data1 <-  fread(input = filename)
+#   data1$alt_external_id <- as.character(data1$alt_external_id)
+#   data1$tweet_id <- as.character(data1$tweet_id) 
+#   data <- rbind(data,data1)
+# }
+
+```
+# Background  
+
+In January 2017, major US agencies such as the Central Intelligence Agency(CIA), Federal Bureau of Investigations (FBI), and the National Security Agency(NSA) reported that there were evidences that the Russian government had conducted a campaign to influence the 2016 Presidential election. The campaign was aimed at damaging Hillary Clinton's presidential campaign, in the process, undermining the US democratic process. 
+
+According to the report, it was found that the tweets were originating from the Russian "Trolls Factory" called the Internet Research Agency. In this assignment, we analyse the 3 million trolls tweets dataset obtained by Clemson University to explore the strategy used by the trolls.
+
+# Hypothesis 
+
+A strategy utilized by the trolls was to divide the democratic party supporters by expressing support for Bernie Sanders and deriding Hillary Clinton in an effort to drive low voter turnouts overall and encouraging them to vote against Clinton. At the same time, tweets were rallying the right wing votes. 
+
+We will analyze the tweets around a specific event, the Democratic National Convention (DNC), held between July 25, 2016 - July 28, 2016. The DNC is a series of presidential nomination conventions held by the Democratic Party. The main purpose of the convention is to confirm the 	nomination of the president and vice president candidates. In 2016, DNC had two main candidates competed for the presidential nomination - Hillary Clinton and Bernie Sanders. At the same time, in june and july 2016, hackers released emails by DNC members suggesting that the party leadership had undermined Bernie Sanders campaign and in turn favouring the Clinton campaign. 
+
+# Research Questions
+
+1. What behaviour do the left leaning and right leaning trolls exhibit during the period of observation? Is it different from the general trend ? 
+2. Comparing words and hashtags used by left and right leaning trolls around the same topic 
+3. Can we identify certain characteristics of a troll 
+
+# Data 
+
+We first conducted general data analysis on the whole set of tweets to draw out general trends. We further analyzed tweets from June 1 2016 to August 31 2016 to validate our hypothesis and find other insights that might arise out of the data. Due to the focus of our analysis being on how these tweets affect sentiment during the election, we have used a subset tweets that are in English
+
+# Findings
+
+# 1 - Frequency of tweets
+
+When the whole set is considered, we see that the frequency of tweets is higher between 2015 and 2018, with it peaking just before the end of 2016 around the elections. Interestingly, the tweets don't subside post elections, but continue till the end of 2017.
+
+```{r, echo=FALSE, cache= TRUE}
+Rtweets<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_1.csv")
+Rtweets2<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_2.csv")
+Rtweets3<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_3.csv")
+Rtweets4<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_4.csv")
+Rtweets5<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_5.csv")
+Rtweets6<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_6.csv")
+Rtweets7<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_7.csv")
+Rtweets8<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_8.csv")
+Rtweets9<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_9.csv")
+Rtweets10<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_10.csv")
+Rtweets11<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_11.csv")
+Rtweets12<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_12.csv")
+Rtweets13<-read.csv("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_13.csv")
+Full_Rtweets<-rbind(Rtweets,Rtweets2,Rtweets3,Rtweets4,Rtweets5,Rtweets6,Rtweets7,Rtweets8,Rtweets9,Rtweets10,Rtweets11,Rtweets12,Rtweets13)
+
+Eng_Tweets<-Full_Rtweets[Full_Rtweets$language=="English",]
+
+library(lubridate)
+
+Eng_Tweets$NewDateTime <- as.POSIXlt(strptime(Eng_Tweets$publish_date, '%m/%d/%Y %H:%M')) 
+#Assigning a day to each observation
+Eng_Tweets$tweets_per_day<-as.Date(cut(Eng_Tweets$NewDateTime,breaks = "day"))
+
+#Creating a count column and creating a frequency table
+count<-rep.int(1,2116867)
+time.df<-data.frame(Eng_Tweets$tweets_per_day,count)
+tweet_count<-aggregate(time.df$count, by=list(time.df$Eng_Tweets.tweets_per_day), sum)
+colnames(tweet_count)<-c("Date","Count")
+#Basic line plot
+ggplot(data = tweet_count, aes(x = Date, y =Count )) +
+  geom_line(color = "#00AFBB", size = 1) +
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),
+        legend.position="none") +
+  labs(x = "Number of Tweets", y = "Date",
+       title = "Frequency of Tweets from 2015 to 2018 accounts")+ 
+  guides(colour=FALSE)
+
+```
+  
+# 2 Timing of tweets
+
+As the figures above show, there is more activity in the afternoon and early-evening hours.The exact cause of the heightened activity in the afternoon/evening would need further analysis; however, it is clear that these times are more active.
+
+```{r,echo=FALSE, cache= TRUE, width = 6, height =6}
+####WILLIAMS8KALVIN####
+Will_tweets <- Full_Rtweets[Full_Rtweets$author == "WILLIAMS8KALVIN",]
+
+#Creating count column
+Will_tweets$Count<-rep(1,1062)
+#Formatting date
+Will_tweets$NewDateTime <- as.character(Will_tweets$publish_date) 
+#Creating tweets per hour column
+Will_tweets$hour<-format(as.POSIXct(strptime(Will_tweets$publish_date,"%m/%d/%Y %H:%M",tz="")) ,format = "%H")
+Will_time.df<-data.frame(Will_tweets$hour,Will_tweets$Count)
+Will_tweet_hour_count<-aggregate(Will_time.df$Will_tweets.Count, by=list(Will_time.df$Will_tweets.hour), sum)
+colnames(Will_tweet_hour_count)<-c("Hour","Count")
+
+
+####ELIZEESTR####
+
+Eliz_tweets<-Full_Rtweets[Full_Rtweets$author == "ELIZEESTR",]
+
+#Creating count column
+Eliz_tweets$Count<-rep(1,length(Eliz_tweets$author))
+
+#Creating tweets per hour column
+
+Eliz_tweets$Hour<-format(as.POSIXct(strptime(Eliz_tweets$publish_date,"%m/%d/%Y %H:%M",tz="")) ,
+                         format = "%H")
+Eliz_time.df<-data.frame(Eliz_tweets$Hour,Eliz_tweets$Count)
+Eliz_tweet_hour_count<-aggregate(Eliz_time.df$Eliz_tweets.Count, by=list(Eliz_time.df$Eliz_tweets.Hour), sum)
+colnames(Eliz_tweet_hour_count)<-c("Hour","Count")
+
+
+####DEBESSTRS####
+Deb_tweets<-Full_Rtweets[Full_Rtweets$author == "DEBESSTRS",]
+
+#Creating count column
+Deb_tweets$Count<-rep(1,length(Deb_tweets$author))
+
+#Creating tweets per hour column
+
+Deb_tweets$Hour<-format(as.POSIXct(strptime(Deb_tweets$publish_date,"%m/%d/%Y %H:%M",tz="")) ,format = "%H")
+Deb_time.df<-data.frame(Deb_tweets$Hour,Deb_tweets$Count)
+Deb_tweet_hour_count<-aggregate(Deb_time.df$Deb_tweets.Count, by=list(Deb_time.df$Deb_tweets.Hour), sum)
+colnames(Deb_tweet_hour_count)<-c("Hour","Count")
+
+
+####GRAPHICS####
+
+#First I need to reshape the data to make plotting multiple series on one plot easier
+
+library(reshape2)
+
+melt_hour_tweets<- melt(list(DEBESSTRS=Deb_tweet_hour_count,ELIZEESTR=Eliz_tweet_hour_count,
+                             WILLIAMS8KALVIN=Will_tweet_hour_count), id.vars="Hour")
+colnames(melt_hour_tweets)<-c("Hour","variable","Count","Author")
+
+#Now I can make my graphs
+
+ggplot(melt_hour_tweets,aes(x=Hour, y= Count,fill=Author))+geom_bar(stat = "identity") +
+  theme(axis.ticks = element_blank()) +
+  labs(x = "Number of Tweets", y = "Hour of Day",
+       title = "Frequency of Tweets as per time of day for three most active accounts ")+ 
+  guides(colour=FALSE)
+
+```
+
+![](unnamed.png)
+
+
+# 3 Tweets according to account types
+
+The tweets were in 56 different languages, out of which 71.9% of tweets were in English and the tweets came from 37 different regions. The number of non-english tweets was substantially higher than english tweets, with more right leaning trolls than left leaning trolls.
+
+```{r,echo=FALSE, cache= TRUE}
+data <-  fread(input = 
+    "D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_1.csv")
+data$alt_external_id <- as.character(data$alt_external_id) 
+data$tweet_id <- as.character(data$tweet_id) 
+for (i in 2:13)
+{
+  filename <- 
+  paste("D:/Columbia/Spring 2019/Data Science and Public Policy/Data Assignment 1/IRAhandle_tweets_",
+        i,".csv",sep = "")
+  data1 <-  fread(input = filename)
+  data1$alt_external_id <- as.character(data1$alt_external_id)
+  data1$tweet_id <- as.character(data1$tweet_id) 
+  data <- rbind(data,data1)
+}
+```
+
+
+```{r,echo=FALSE, cache= TRUE,fig.width=6, fig.height=4, fig.align='center'}
+# All Category types
+acc_cat_data = data[,.(count = .N), by = "account_category"]
+ggplot(acc_cat_data, aes(x = reorder(account_category, count), 
+                         y = count, fill = account_category)) + 
+  geom_bar(stat = 'identity') +
+theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),
+      legend.position="none") +
+  labs(x = "Twitter Account Types", y = "Number of Tweets",
+       title = "Number of tweets by different account types") + 
+  guides(colour=FALSE) +
+  coord_flip()
+```
+
+```{r,echo=FALSE, cache= TRUE,fig.width=6, fig.height=4, fig.align='center'}
+# Non English Category
+non_eng_category = data[account_category == "NonEnglish",
+                        .(count = .N), by = "account_type"]
+ggplot(non_eng_category, aes(x = reorder(account_type, desc(count)),
+                             y = count, fill = account_type)) + 
+  geom_bar(stat = 'identity') +
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),
+        legend.position="none") +
+  labs(x = "Non English Tweet languages", y = "Number of Tweets",
+       title = "Number of tweets by non english Language")+ 
+  guides(colour=FALSE)
+```
+
+If we analyze the non-english tweets further, we see that russian tweets dominate followed by German, Italian, Arabic and Spanish.
+
+```{r,echo=FALSE, cache= TRUE, fig.width=6, fig.height=4, fig.align='center'}
+# Non English Category
+only_eng_category = data[account_category != "NonEnglish",
+                        .(count = .N), by = "account_category"]
+ggplot(only_eng_category, aes(x = reorder(account_category, desc(count)),
+                             y = count, fill = account_category)) + 
+  geom_bar(stat = 'identity') +
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),
+        legend.position="none") +
+  labs(x = "Account Category", y = "Number of Tweets",
+       title = "Number of tweets by different account types (English)")+ 
+  guides(colour=FALSE)
+```
+
+Most of the Tweets are Right Wing/ Left wing trolls, or are news feeds.
+\newpage 
+
+# 4. Analysis During DNC (tweets from the period 1st of June 2016 to 31st of August 2016): 
+
+## 4.1. Frequency of tweets: 
+
+We look at right and left wing trolls and concentrate around the period when DNC emails were leaked and the mood of right and left wing trolls. We hypothesize that the Russian trolls were trying to divide the democratic party by cashing in on the email leaks and trying to display negative sentiment on Hillary Clinton, while trying to play up Bernie Sanders Supporters by encouraging them to vote against Hillary.
+
+```{r, echo=FALSE, cache= TRUE,fig.width=5, fig.height=4,fig.align='center'}
+troll_data <- data[(account_category == "RightTroll" | account_category == "LeftTroll"),
+                   .(date = as.Date(publish_date, format = "%m/%d/%Y %H:%M"), 
+                      content, author, account_category)]
+dnc_troll <- troll_data %>%
+  subset((date >= as.Date("2016-06-01"))) %>%
+  subset((date <= as.Date("2016-08-31")))
+troll_data_counter = 
+  dnc_troll[(account_category == "RightTroll" | account_category == "LeftTroll"),
+                                .(count = .N),by = "account_category"]
+data_counter = data[(account_category == "RightTroll" | account_category == "LeftTroll"),
+                         .(count = .N),by = "account_category"]
+
+jal = troll_data_counter[account_category=="LeftTroll",count]
+jar = troll_data_counter[account_category=="RightTroll",count]
+ol = data_counter[account_category=="LeftTroll",count]
+or = data_counter[account_category=="RightTroll",count]
+tweet_compare = data.table("Trolls" = c("Right Wing", "Left Wing","Right Wing", "Left Wing"), "Time"= c("Overall", "Jun-Aug 2016", "Jun-Aug 2016", "Overall"), "Score"= c(0))
+tweet_compare[Trolls == "Right Wing" & Time == "Overall"]$Score= 100* or/(ol+or)
+tweet_compare[Trolls == "Right Wing" & Time == "Jun-Aug 2016"]$Score= 100* jar/(jal+jar)
+tweet_compare[Trolls == "Left Wing" & Time == "Overall"]$Score= 100* ol/(ol+or)
+tweet_compare[Trolls == "Left Wing" & Time == "Jun-Aug 2016"]$Score= 100* jal/(jal+jar)
+
+ggplot(tweet_compare, aes(x = Time, y = Score, fill = Trolls)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values = c("#0000FF","#FF0000")) +
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2))) +
+  labs(x = "Time Frame", y = "Percentage of Tweets",
+       title = "Number of tweets for different time periods", 
+       subtitle = "More left Troll accounts working in the DNC time period")
+
+
+```
+An interesting insight is that though the overall data shows that the Right Troll tweets were about twice of Left Wing trolls, the left troll accounts were more active in the period of June- August 2016
+
+
+## 4.2. Sentiment Analysis: 
+
+We further use the R 'SentimentAnalysis' package to calculate sentiment of the Tweeters (Both Left and Right Trolls) for Bernie Sanders and Hillary Clinton during the DNC. We will be using SentimentGI calculator of the R's 'SentimentAnalysis' , which is based on sentiment on the words of Harvard-IV Dictionary. 
+
+We subset the tweets where Keywords 'Bernie' and 'Sanders'(referencing Bernie Sanders) and 'Hillary' and 'Clinton' (referencing Hillary Clinton) were used. This is done seperately for Right and left wing Trolls. Each Tweet receives a score from -1 to +1 depending on the sentiment expressed in the tweet.(Negetive to Positive). The Average Sentiment Score is calculated by taking the average of the tweet sentient score for the particular group. 
+
+```{r, echo=FALSE, cache= TRUE}
+library(SentimentAnalysis)
+
+```
+
+```{r, echo=FALSE, cache= TRUE,fig.width=5, fig.height=4,fig.align='center'}
+dnc_bernie_left <- dnc_troll[account_category == "LeftTroll" & (grepl("Bernie",content,ignore.case = TRUE) | grepl("Sanders",content,ignore.case = TRUE)),]
+dnc_bernie_right <- dnc_troll[account_category == "RightTroll" & (grepl("Bernie",content,ignore.case = TRUE) | grepl("Sanders",content,ignore.case = TRUE)),]
+dnc_hillary_left <- dnc_troll[account_category == "LeftTroll" & (grepl("Hillary",content,ignore.case = TRUE) | grepl("Clinton",content,ignore.case = TRUE)),]
+dnc_Hillary_right <- dnc_troll[account_category == "RightTroll" & (grepl("Hillary",content,ignore.case = TRUE) | grepl("Clinton",content,ignore.case = TRUE)),]
+
+
+bernie_left_score <- sum(analyzeSentiment(dnc_bernie_left[,content], language = "english", aggregate = NULL, removeStopwords = TRUE,
+                 stemming = TRUE)[2])/nrow(dnc_bernie_left)
+
+bernie_right_score <- sum(analyzeSentiment(dnc_bernie_right[,content], language = "english", aggregate = NULL, removeStopwords = TRUE,
+                     stemming = TRUE)[2])/nrow(dnc_bernie_right)
+
+hillary_left_score <- sum(analyzeSentiment(dnc_hillary_left[,content], language = "english", aggregate = NULL, removeStopwords = TRUE,
+                     stemming = TRUE)[2])/nrow(dnc_hillary_left)
+
+hillary_right_score <- sum(analyzeSentiment(dnc_Hillary_right[,content], language = "english", aggregate = NULL, removeStopwords = TRUE,
+                     stemming = TRUE)[2])/nrow(dnc_Hillary_right)
+sentiment_score = data.table("Trolls" = c("Right Wing", "Left Wing","Right Wing", "Left Wing"), "Person"= c("Clinton", "Sanders", "Sanders", "Clinton"), "Score"= c(0))
+sentiment_score[Trolls == "Right Wing" & Person == "Clinton"]$Score= hillary_right_score
+sentiment_score[Trolls == "Right Wing" & Person == "Sanders"]$Score= bernie_right_score
+sentiment_score[Trolls == "Left Wing" & Person == "Clinton"]$Score= hillary_left_score
+sentiment_score[Trolls == "Left Wing" & Person == "Sanders"]$Score= bernie_left_score
+
+ggplot(sentiment_score, aes(x = Person, y = Score, fill = Trolls)) + 
+  geom_bar(stat = "identity", position = "dodge") + 
+  scale_fill_manual(values = c("#0000FF","#FF0000")) +
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2))) +
+  labs(x = "Candidate", y = "Sentiment Score",
+  title = "Sentiment in the period Jun 1 - Aug 31, 2016", 
+  subtitle = "Right Wing Sentiment on Sanders is greater than Left wing on Clinton")+  
+  guides(colour=FALSE)
+
+```
+
+## 4.3. Popular Hashtags during the period 
+
+The Most Popular Hashtags referenced by the Trolls during that time period were
+
+```{r,echo = FALSE,cache= TRUE,fig.width=6, fig.height=4.2,fig.align='center'}
+right_troll <- dnc_troll[account_category == "RightTroll" & grepl("#", dnc_troll$content)]
+
+r_hashtags = head(setDT(list(unlist(str_extract_all(right_troll$content, "#\\S+"))))[,
+                  .(count = .N), by = "V1"][order(count, decreasing = TRUE)], n = 10)
+
+ggplot(r_hashtags, aes(x = reorder(V1, desc(count)), y = count, fill = V1)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),axis.text.x = element_text(angle = 25, hjust = 1),
+        legend.position="none") +
+  labs(x = "Hashtags", y = "No of times refered",
+  title = "Popular hashtag among Right wing Trolls Jun 1 - Aug 31, 2016", 
+  subtitle = "Most of the the hastags are Anti-Clinton")
+```
+
+```{r,echo = FALSE, cache= TRUE,fig.width=6, fig.height=4.2,fig.align='center'}
+left_troll <- dnc_troll[account_category == "LeftTroll" & grepl("#", dnc_troll$content)]
+
+l_hashtags = head(setDT(list(unlist(str_extract_all(left_troll$content, "#\\S+"))))[,
+                  .(count = .N), by = "V1"][order(count, decreasing = TRUE)], n = 10)
+
+ggplot(l_hashtags, aes(x = reorder(V1, desc(count)), y = count, fill = V1)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),axis.text.x = element_text(angle = 25, hjust = 1),
+        legend.position="none") +
+  labs(x = "Hashtags", y = "No of times refered",
+  title = "Popular hashtag among Left wing Trolls Jun 1 - Aug 31, 2016", 
+  subtitle = "The Hastags refer to Police Brutality towards African-American community")
+```
+\newpage 
+
+# 5 Speed of Tweets by a user
+
+As the tweets had a time stamp to the minute, we ran analysis of the hypothesis that some of the accounts might by bots. Lets look at the Accounts that retweeted more than 10 times in a minute.
+
+```{r,echo = FALSE, cache= TRUE,fig.width=6, fig.height=4.2,fig.align='center'}
+
+retweeters = head(data[(account_category == "RightTroll" | account_category == "LeftTroll") & 
+                         post_type == "RETWEET",.(rtcount = .N),
+                       by = c("author", "account_category")][order(rtcount, decreasing = TRUE)],n = 10)
+
+fastest <- data[(account_category == "RightTroll" | account_category == "LeftTroll") & 
+                  post_type == "RETWEET", .(author, publish_date, content)]  
+
+fast_10 <- fastest[,.(count = .N), by = c("publish_date", "author")][count>10][order(count, decreasing = TRUE)]
+fast_10 = head(fast_10[,.(times = .N), by= c("author")][order(times, decreasing = TRUE)],n=10)
+
+
+ggplot(fast_10, aes(x = reorder(author, desc(times)), y = times, fill = author)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),axis.text.x = element_text(angle = 25, hjust = 1),
+        legend.position="none") +
+  labs(x = "Trolls", y = "Frequency",
+  title = "Number of times trolls had more that 10 retweets in a min", 
+  subtitle = "It can be infered that many of them were bots")
+```
+
+Now lets look at the Accounts that tweeted more than 5 times in a minute ( which may be impossible for a human.
+```{r,echo = FALSE, cache= TRUE,fig.width=6, fig.height=4.2,fig.align='center'}
+retweeters = head(data[(account_category == "RightTroll" | account_category == "LeftTroll") & 
+                         post_type == "",.(rtcount = .N),
+                       by = c("author", "account_category")][order(rtcount, decreasing = TRUE)],n = 10)
+
+fastest <- data[(account_category == "RightTroll" | account_category == "LeftTroll") & 
+                  post_type == "", .(author, publish_date, content)]  
+
+fast_10 <- fastest[,.(count = .N), by = c("publish_date", "author")][count>5][order(count, decreasing = TRUE)]
+fast_10 = head(fast_10[,.(times = .N), by= c("author")][order(times, decreasing = TRUE)],n=10)
+
+
+ggplot(fast_10, aes(x = reorder(author, desc(times)), y = times, fill = author)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.ticks = element_blank(),plot.title = element_text(size = rel(1.2)),axis.text.x = element_text(angle = 25, hjust = 1),
+        legend.position="none") +
+  labs(x = "Trolls", y = "Frequency",
+  title = "Number of times trolls had more that 5 tweets in a min", 
+  subtitle = "Definetely many of them were bots")+ 
+  guides(colour=FALSE)
+```
+
+Top 10 instances where accounts had high number of tweets in a minute 
+```{r,echo = FALSE, cache= TRUE, fig.align='center'}
+# Orignal tweeters
+
+fastest <- data[(account_category == "RightTroll" | account_category == "LeftTroll") & 
+                  post_type == "", .(author, publish_date, content)]  
+fast_10 <- fastest[,.(count = .N), 
+           by = c("publish_date", "author")][count>5][order(count, decreasing = TRUE)]
+head(fast_10, n =10)
+cat("Time count was greater than 5 per min " , nrow(fast_10))
+```
+12065 times has more that 5 'Orignal Tweets' been posted per min. WILLIAMS8KALVIN has 116 tweets per min, which makes a case for some of the accounts being bots and not human accounts"
+
+\newpage 
+
+#Policy Recommendations & Future Research Questions 
+
+- The burst of activity on twitter around certain events like the DNC convention bring to light the strategy used on twitter by russian trolls more sharply. Looking at tweets around the event also help focus the analysis.   
+- Identifying bots based on certain characteristics of a tweet - includes the text (like specific words used and patterns of capitalizing letters), how many hashtags it includes and how often it is retweeted. 
+
+# Contributions
+
+- The final approach was decided collaboratively through group discussion and initial analysis of the data.   
+- Alexandra DeKinder and  Ameya Karnad worked on data analysis using R  
+- Kulkanya Lekhyananda and Nitasha Nair worked on the presentation and policy report
+
+# References
+
+1 - Jonathan Masters, "Russia, Trump, and the 2016 U.S. Election" (Council on Foreign Relations, 2018), https://www.cfr.org/backgrounder/russia-trump-and-2016-us-election.
+
+2 - "Why We're Sharing 3 Million Russian Troll Tweets," FiveThiryEight, 2018, https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/.
+
+3 - "Why We're Sharing 3 Million Russian Troll Tweets," FiveThiryEight, 2018, https://fivethirtyeight.com/features/why-were-sharing-3-million-russian-troll-tweets/.
+
